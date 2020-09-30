@@ -1,6 +1,9 @@
 #pragma once
 using namespace System;
+using namespace System::Runtime::InteropServices;
 #include "zoom_sdk_dotnet_wrap_def.h"
+#include "h/zoom_sdk_raw_data_helper_interface.h"
+
 namespace ZOOM_SDK_DOTNET_WRAP {
 
 	public enum class RawDataMemoryMode : int
@@ -12,12 +15,30 @@ namespace ZOOM_SDK_DOTNET_WRAP {
 	public ref class DotNetAudioRawData
 	{
 	public:
-		bool CanAddRef();
-		bool AddRef();
-		int Release();
-		array<Byte>^ GetBuffer();
-		UInt32 GetBufferLen();
-		UInt32 GetSampleRate();
+		bool CanAddRef() {
+			return _data->CanAddRef();
+		}
+		bool AddRef() {
+			return _data->AddRef(); 
+		}
+		int Release() {
+			return _data->Release();
+		}
+		array<Byte>^ GetBuffer() {
+			char* buf = _data->GetBuffer();
+			int len = strlen(buf);
+
+			array<Byte>^ byteArray = gcnew array< Byte >(len + 2);
+			// convert native pointer to System::IntPtr with C-Style cast
+			Marshal::Copy((IntPtr)buf, byteArray, 0, len);
+			return byteArray;
+		}
+		UInt32 GetBufferLen() {
+			return _data->GetBufferLen();
+		}
+		UInt32 GetSampleRate() {
+			return _data->GetSampleRate();
+		}
 	private:
 		AudioRawData* _data;
 
@@ -27,22 +48,35 @@ namespace ZOOM_SDK_DOTNET_WRAP {
 		}
 	};
 
-//	public interface class IAudioRawDataReceiverDotNetWrap {
-//	public: 
-//		void onMixedAudioRawDataReceived(AudioRawData^ data_);
-//		void onOneWayAudioRawDataReceived(AudioRawData^ data_, UInt32 node_id);
-//	};
-
 	public delegate void onMixedAudioRawDataReceived(DotNetAudioRawData^ data);
 	public delegate void onOneWayAudioRawDataReceived(DotNetAudioRawData^ data_, UInt32 node_id);
 
-	public ref class AudioRawDataChannelDotNetWrap {
+	class IAudioRawDataReceiverDotNetWrap {
 	public: 
-		SDKError Start(RawDataMemoryMode mode, onMixedAudioRawDataReceived^ onMixedDataRecieved, onOneWayAudioRawDataReceived^ onOneWayDataReceived);
-		SDKError Stop();
+		virtual void onMixedAudioRawDataReceived(DotNetAudioRawData^ data_) = 0;
+		virtual void onOneWayAudioRawDataReceived(DotNetAudioRawData^ data_, UInt32 node_id) = 0;
+	};
 
-	private:
-		onMixedAudioRawDataReceived^ event_onMixedAudioRawDataReceived;
-		onOneWayAudioRawDataReceived^ event_onOneWayAudioRawDataReceived;
+	public interface class IAudioRawDataChannelDotNetWrap {
+	public: 
+		SDKError Start(RawDataMemoryMode mode, IAudioRawDataReceiverDotNetWrap* receiver);
+		SDKError Stop();
+	};
+
+	private ref class CAudioRawDataChannelDotNetWrap sealed : public IAudioRawDataChannelDotNetWrap {
+
+	public:
+		static property CAudioRawDataChannelDotNetWrap^ Instance
+		{
+			CAudioRawDataChannelDotNetWrap^ get() { return m_Instance; }
+		}
+
+		virtual SDKError Start(RawDataMemoryMode mode, IAudioRawDataReceiverDotNetWrap* receiver);
+		virtual SDKError Stop();
+
+    private: 
+		CAudioRawDataChannelDotNetWrap();
+		virtual ~CAudioRawDataChannelDotNetWrap();
+		static CAudioRawDataChannelDotNetWrap^ m_Instance = gcnew CAudioRawDataChannelDotNetWrap;
 	};
 }
