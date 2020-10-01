@@ -48,18 +48,15 @@ namespace ZOOM_SDK_DOTNET_WRAP {
 		}
 	};
 
-	public delegate void onMixedAudioRawDataReceived(DotNetAudioRawData^ data);
-	public delegate void onOneWayAudioRawDataReceived(DotNetAudioRawData^ data_, UInt32 node_id);
-
-	class IAudioRawDataReceiverDotNetWrap {
+	public interface class IAudioRawDataReceiverDotNetWrap {
 	public: 
-		virtual void onMixedAudioRawDataReceived(DotNetAudioRawData^ data_) = 0;
-		virtual void onOneWayAudioRawDataReceived(DotNetAudioRawData^ data_, UInt32 node_id) = 0;
+		void onMixedAudioRawDataReceived(DotNetAudioRawData^ data_);
+		void onOneWayAudioRawDataReceived(DotNetAudioRawData^ data_, UInt32 node_id);
 	};
 
 	public interface class IAudioRawDataChannelDotNetWrap {
 	public: 
-		SDKError Start(RawDataMemoryMode mode, IAudioRawDataReceiverDotNetWrap* receiver);
+		SDKError Start(RawDataMemoryMode mode, IAudioRawDataReceiverDotNetWrap^ receiver);
 		SDKError Stop();
 	};
 
@@ -71,7 +68,7 @@ namespace ZOOM_SDK_DOTNET_WRAP {
 			CAudioRawDataChannelDotNetWrap^ get() { return m_Instance; }
 		}
 
-		virtual SDKError Start(RawDataMemoryMode mode, IAudioRawDataReceiverDotNetWrap* receiver);
+		virtual SDKError Start(RawDataMemoryMode mode, IAudioRawDataReceiverDotNetWrap^ receiver);
 		virtual SDKError Stop();
 
     private: 
