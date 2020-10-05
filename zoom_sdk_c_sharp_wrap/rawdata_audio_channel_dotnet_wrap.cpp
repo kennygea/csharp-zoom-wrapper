@@ -36,11 +36,14 @@ namespace ZOOM_SDK_DOTNET_WRAP {
 
 	SDKError CAudioRawDataChannelDotNetWrap::Stop()
 	{
-		return (SDKError)ZOOM_SDK_NAMESPACE::CSDKExtWrap::GetInst().GetAudioRawDataChannelWrap().Stop();
+		SDKError res = (SDKError)ZOOM_SDK_NAMESPACE::CSDKExtWrap::GetInst().GetAudioRawDataChannelWrap().Stop();
+		ZOOM_SDK_NAMESPACE::CSDKExtWrap::GetInst().GetAudioRawDataChannelWrap().Uninit();
+		return res;
 	}
 
 	SDKError CAudioRawDataChannelDotNetWrap::Start(RawDataMemoryMode mode, IAudioRawDataReceiverDotNetWrap^ receiver)
 	{
+		ZOOM_SDK_NAMESPACE::CSDKExtWrap::GetInst().GetAudioRawDataChannelWrap().Init();
 		ZOOM_RAWDATA_NAMESPACE::RawDataMemoryMode mode_c = (ZOOM_RAWDATA_NAMESPACE::RawDataMemoryMode)mode;
 		ZOOM_RAWDATA_NAMESPACE::IAudioRawDataReceiver* receiver_c = new AudioRawDataReceiver(receiver);
 
