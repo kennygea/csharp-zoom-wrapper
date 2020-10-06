@@ -128,6 +128,18 @@ namespace zoom_sdk_demo
                 Hide();
                 var res = ZOOM_SDK_DOTNET_WRAP.CZoomSDKeDotNetWrap.Instance.GetAudioRawDataChannelWrap().Start(RawDataMemoryMode.RawDataMemoryMode_Stack, new TestReceiver());
                 Console.WriteLine($"Raw data channel start with {res}");
+                CZoomSDKeDotNetWrap.Instance.GetMeetingServiceWrap().GetMeetingAudioController()
+                    .Add_CB_onUserActiveAudioChange((list) =>
+                    {
+                        if (list == null || list.Length == 0)
+                        {
+                            return;
+                        }
+                        var users = list.Select(userId => CZoomSDKeDotNetWrap.Instance.GetMeetingServiceWrap().GetMeetingParticipantsController().GetUserByUserID(userId));
+
+                        var usernames = users.Select(u => u.GetUserNameW());
+                        Console.WriteLine($"Active speakers: {string.Join(" ", usernames)}");
+                    });
             }
             else//error handle
             { }
